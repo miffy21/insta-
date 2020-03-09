@@ -90,14 +90,22 @@ class User < ApplicationRecord
   end
   private
 
-    # メールアドレスをすべて小文字にする
-    def downcase_email
-      self.email = email.downcase
-    end
+  # メールアドレスをすべて小文字にする
+  def downcase_email
+    self.email = email.downcase
+  end
 
-    # 有効化トークンとダイジェストを作成および代入する
-    def create_activation_digest
-      self.activation_token  = User.new_token
-      self.activation_digest = User.digest(activation_token)
-    end
+  # 有効化トークンとダイジェストを作成および代入する
+  def create_activation_digest
+    self.activation_token  = User.new_token
+    self.activation_digest = User.digest(activation_token)
+  end
+
+  # ユーザーのステータスフィードを返す
+  def feed
+    following_ids = "SELECT followed_id FROM relationships
+                     WHERE follower_id = :user_id"
+    Micropost.where("user_id IN (#{following_ids})
+                     OR user_id = :user_id", user_id: id)
+  end
 end
